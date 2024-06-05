@@ -78,7 +78,7 @@
     "realpath-missing": "^1.1.0",
     "render-help": "^1.0.3",
     "tar-stream": "^2.2.0",
-    "tempy": "^1.0.1",
+    "tempy": "^3.0.0",
     "write-json-file": "^4.3.0"
   },
   "peerDependencies": {
