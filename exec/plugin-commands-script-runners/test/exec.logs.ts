@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { readProjects } from '@pnpm/filter-workspace-packages'
+import { filterPackagesFromDir } from '@pnpm/workspace.filter-packages-from-dir'
 import { logger } from '@pnpm/logger'
 import { exec } from '@pnpm/plugin-commands-script-runners'
 import { preparePackages } from '@pnpm/prepare'
@@ -21,7 +21,7 @@ afterEach(() => {
   (lifecycleLogger.debug as jest.Mock).mockClear()
 })
 
-test('pnpm exec --recursive prints prefixes', async () => {
+test('pnpm exec --recursive --no-reporter-hide-prefix prints prefixes', async () => {
   preparePackages([
     {
       location: 'packages/foo',
@@ -37,7 +37,7 @@ test('pnpm exec --recursive prints prefixes', async () => {
     packages: ['packages/*'],
   })
 
-  const { selectedProjectsGraph } = await readProjects(process.cwd(), [])
+  const { selectedProjectsGraph } = await filterPackagesFromDir(process.cwd(), [])
 
   const scriptFile = path.resolve('script.js')
   fs.writeFileSync(scriptFile, `
@@ -51,6 +51,7 @@ test('pnpm exec --recursive prints prefixes', async () => {
     dir: process.cwd(),
     recursive: true,
     bail: true,
+    reporterHidePrefix: false,
     selectedProjectsGraph,
   }, [process.execPath, scriptFile])
 
@@ -99,7 +100,7 @@ test('pnpm exec --recursive --reporter-hide-prefix does not print prefixes', asy
     packages: ['packages/*'],
   })
 
-  const { selectedProjectsGraph } = await readProjects(process.cwd(), [])
+  const { selectedProjectsGraph } = await filterPackagesFromDir(process.cwd(), [])
 
   const scriptFile = path.resolve('script.js')
   fs.writeFileSync(scriptFile, `
@@ -114,6 +115,42 @@ test('pnpm exec --recursive --reporter-hide-prefix does not print prefixes', asy
     recursive: true,
     bail: true,
     reporterHidePrefix: true,
+    selectedProjectsGraph,
+  }, [process.execPath, scriptFile])
+
+  expect(lifecycleLogger.debug).not.toHaveBeenCalled()
+})
+
+test('pnpm exec --recursive does not print prefixes by default', async () => {
+  preparePackages([
+    {
+      location: 'packages/foo',
+      package: { name: 'foo' },
+    },
+    {
+      location: 'packages/bar',
+      package: { name: 'bar' },
+    },
+  ])
+
+  await writeYamlFile('pnpm-workspace.yaml', {
+    packages: ['packages/*'],
+  })
+
+  const { selectedProjectsGraph } = await filterPackagesFromDir(process.cwd(), [])
+
+  const scriptFile = path.resolve('script.js')
+  fs.writeFileSync(scriptFile, `
+    console.log('hello from stdout')
+    console.error('hello from stderr')
+    console.log('name is ' + require(require('path').resolve('package.json')).name)
+  `)
+
+  await exec.handler({
+    ...DEFAULT_OPTS,
+    dir: process.cwd(),
+    recursive: true,
+    bail: true,
     selectedProjectsGraph,
   }, [process.execPath, scriptFile])
 

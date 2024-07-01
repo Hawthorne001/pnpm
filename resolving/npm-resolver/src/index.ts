@@ -11,9 +11,10 @@ import {
   type PreferredVersions,
   type ResolveResult,
   type WantedDependency,
+  type WorkspacePackage,
   type WorkspacePackages,
+  type WorkspacePackagesByVersion,
 } from '@pnpm/resolver-base'
-import { type DependencyManifest } from '@pnpm/types'
 import { LRUCache } from 'lru-cache'
 import normalize from 'normalize-path'
 import pMemoize from 'p-memoize'
@@ -305,12 +306,7 @@ function tryResolveFromWorkspacePackages (
 }
 
 function pickMatchingLocalVersionOrNull (
-  versions: {
-    [version: string]: {
-      dir: string
-      manifest: DependencyManifest
-    }
-  },
+  versions: WorkspacePackagesByVersion,
   spec: RegistryPackageSpec
 ): string | null {
   const localVersions = Object.keys(versions)
@@ -328,13 +324,8 @@ function pickMatchingLocalVersionOrNull (
   }
 }
 
-interface LocalPackage {
-  dir: string
-  manifest: DependencyManifest
-}
-
 function resolveFromLocalPackage (
-  localPackage: LocalPackage,
+  localPackage: WorkspacePackage,
   normalizedPref: string | undefined,
   opts: {
     hardLinkLocalPackages?: boolean
@@ -364,12 +355,12 @@ function resolveFromLocalPackage (
   }
 }
 
-function resolveLocalPackageDir (localPackage: LocalPackage): string {
+function resolveLocalPackageDir (localPackage: WorkspacePackage): string {
   if (
     localPackage.manifest.publishConfig?.directory == null ||
     localPackage.manifest.publishConfig?.linkDirectory === false
-  ) return localPackage.dir
-  return path.join(localPackage.dir, localPackage.manifest.publishConfig.directory)
+  ) return localPackage.rootDir
+  return path.join(localPackage.rootDir, localPackage.manifest.publishConfig.directory)
 }
 
 function defaultTagForAlias (alias: string, defaultTag: string): RegistryPackageSpec {

@@ -5,9 +5,10 @@ import {
 } from '@pnpm/cli-utils'
 import { type Config, getOptionsFromRootManifest } from '@pnpm/config'
 import { PnpmError } from '@pnpm/error'
+import { arrayOfWorkspacePackagesToMap } from '@pnpm/get-context'
 import { filterPkgsBySelectorObjects } from '@pnpm/filter-workspace-packages'
 import { filterDependenciesByType } from '@pnpm/manifest-utils'
-import { arrayOfWorkspacePackagesToMap, findWorkspacePackages } from '@pnpm/workspace.find-packages'
+import { findWorkspacePackages } from '@pnpm/workspace.find-packages'
 import { type Lockfile } from '@pnpm/lockfile-types'
 import { rebuildProjects } from '@pnpm/plugin-commands-rebuild'
 import { createOrConnectStoreController, type CreateStoreControllerOptions } from '@pnpm/store-connection-manager'
@@ -80,6 +81,7 @@ export type InstallDepsOptions = Pick<Config,
 | 'optional'
 | 'workspaceConcurrency'
 | 'workspaceDir'
+| 'workspacePackagePatterns'
 | 'extraEnv'
 | 'ignoreWorkspaceCycles'
 | 'disallowWorkspaceCycles'
@@ -149,7 +151,9 @@ when running add/update with the --workspace option')
   const forcePublicHoistPattern = typeof opts.rawLocalConfig['shamefully-hoist'] !== 'undefined' ||
     typeof opts.rawLocalConfig['public-hoist-pattern'] !== 'undefined'
   const allProjects = opts.allProjects ?? (
-    opts.workspaceDir ? await findWorkspacePackages(opts.workspaceDir, opts) : []
+    opts.workspaceDir
+      ? await findWorkspacePackages(opts.workspaceDir, { ...opts, patterns: opts.workspacePackagePatterns })
+      : []
   )
   if (opts.workspaceDir) {
     const selectedProjectsGraph = opts.selectedProjectsGraph ?? selectProjectByDir(allProjects, opts.dir)
@@ -339,7 +343,7 @@ when running add/update with the --workspace option')
 }
 
 function selectProjectByDir (projects: Project[], searchedDir: string): ProjectsGraph | undefined {
-  const project = projects.find(({ dir }) => path.relative(dir, searchedDir) === '')
+  const project = projects.find(({ rootDir }) => path.relative(rootDir, searchedDir) === '')
   if (project == null) return undefined
   return { [searchedDir]: { dependencies: [], package: project } }
 }

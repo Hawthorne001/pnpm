@@ -4,6 +4,7 @@ import PATH_NAME from 'path-name'
 import { createBase32Hash } from '@pnpm/crypto.base32-hash'
 import { prepare, prepareEmpty } from '@pnpm/prepare'
 import { readModulesManifest } from '@pnpm/modules-yaml'
+import { addUser, REGISTRY_MOCK_PORT } from '@pnpm/registry-mock'
 import { execPnpm, execPnpmSync } from './utils'
 
 test('silent dlx prints the output of the child process only', async () => {
@@ -197,7 +198,7 @@ test('dlx creates cache and store prune cleans cache', async () => {
   ).toStrictEqual([])
 })
 
-test('dlx should ignore .npmrc in the current directory', async () => {
+test('dlx should ignore non-auth info from .npmrc in the current directory', async () => {
   prepare({})
   fs.writeFileSync('.npmrc', 'hoist-pattern=', 'utf8')
 
@@ -209,4 +210,64 @@ test('dlx should ignore .npmrc in the current directory', async () => {
 
   const modulesManifest = await readModulesManifest(path.join(cacheDir, 'dlx', createBase32Hash('shx'), 'pkg/node_modules'))
   expect(modulesManifest?.hoistPattern).toStrictEqual(['*'])
+})
+
+test('dlx read registry from .npmrc in the current directory', async () => {
+  prepareEmpty()
+
+  const data = await addUser({
+    email: 'foo@bar.com',
+    password: 'bar',
+    username: 'foo',
+  })
+
+  fs.writeFileSync('.npmrc', [
+    `registry=http://localhost:${REGISTRY_MOCK_PORT}/`,
+    `//localhost:${REGISTRY_MOCK_PORT}/:_authToken=${data.token}`,
+  ].join('\n'))
+
+  const execResult = execPnpmSync([
+    `--config.store-dir=${path.resolve('store')}`,
+    `--config.cache-dir=${path.resolve('cache')}`,
+    '--package=@pnpm.e2e/needs-auth',
+    'dlx',
+    'hello-from-needs-auth',
+  ], {
+    env: {},
+    stdio: [null, 'pipe', 'inherit'],
+  })
+
+  expect(execResult.stdout.toString().trim()).toBe('hello from @pnpm.e2e/needs-auth')
+  expect(execResult.status).toBe(0)
+})
+
+test('dlx uses the node version specified by --use-node-version', async () => {
+  prepareEmpty()
+
+  const pnpmHome = path.resolve('home')
+
+  const execResult = execPnpmSync([
+    '--use-node-version=20.0.0',
+    `--config.store-dir=${path.resolve('store')}`,
+    `--config.cache-dir=${path.resolve('cache')}`,
+    'dlx',
+    '@pnpm.e2e/print-node-info',
+  ], {
+    env: {
+      PNPM_HOME: pnpmHome,
+    },
+    stdio: [null, 'pipe', 'inherit'],
+  })
+
+  const nodeInfo = JSON.parse(execResult.stdout.toString())
+  expect(nodeInfo).toMatchObject({
+    versions: {
+      node: '20.0.0',
+    },
+    execPath: process.platform === 'win32'
+      ? path.join(pnpmHome, 'nodejs', '20.0.0', 'node.exe')
+      : path.join(pnpmHome, 'nodejs', '20.0.0', 'bin', 'node'),
+  })
+
+  expect(execResult.status).toBe(0)
 })

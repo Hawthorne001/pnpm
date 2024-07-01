@@ -8,7 +8,6 @@ import {
   type Config,
   readLocalConfig,
 } from '@pnpm/config'
-import { arrayOfWorkspacePackagesToMap } from '@pnpm/workspace.find-packages'
 import { logger } from '@pnpm/logger'
 import { sortPackages } from '@pnpm/sort-packages'
 import { createOrConnectStoreController, type CreateStoreControllerOptions } from '@pnpm/store-connection-manager'
@@ -51,9 +50,9 @@ export async function recursiveRebuild (
   if (pkgs.length === 0) {
     return
   }
-  const manifestsByPath: { [dir: string]: Omit<Project, 'dir'> } = {}
-  for (const { dir, manifest, writeProjectManifest } of pkgs) {
-    manifestsByPath[dir] = { manifest, writeProjectManifest }
+  const manifestsByPath: { [dir: string]: Omit<Project, 'rootDir' | 'rootDirRealPath'> } = {}
+  for (const { rootDir, manifest, writeProjectManifest } of pkgs) {
+    manifestsByPath[rootDir] = { manifest, writeProjectManifest }
   }
 
   const throwOnFail = throwOnCommandFail.bind(null, 'pnpm recursive rebuild')
@@ -64,14 +63,12 @@ export async function recursiveRebuild (
 
   const store = await createOrConnectStoreController(opts)
 
-  const workspacePackages = arrayOfWorkspacePackagesToMap(allProjects)
   const rebuildOpts = Object.assign(opts, {
     ownLifecycleHooksStdio: 'pipe',
     pruneLockfileImporters: ((opts.ignoredPackages == null) || opts.ignoredPackages.size === 0) &&
       pkgs.length === allProjects.length,
     storeController: store.ctrl,
     storeDir: store.dir,
-    workspacePackages,
   }) as RebuildOptions
 
   const result: RecursiveSummary = {}

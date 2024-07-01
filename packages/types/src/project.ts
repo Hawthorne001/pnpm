@@ -1,7 +1,8 @@
 import { type ProjectManifest } from './package'
 
 export interface Project {
-  dir: string
+  rootDir: string
+  rootDirRealPath: string
   manifest: ProjectManifest
   writeProjectManifest: (manifest: ProjectManifest, force?: boolean | undefined) => Promise<void>
 }

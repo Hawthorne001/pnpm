@@ -1,5 +1,45 @@
 # @pnpm/plugin-commands-patching
 
+## 6.2.1
+
+### Patch Changes
+
+- Updated dependencies [7c6c923]
+- Updated dependencies [7d10394]
+- Updated dependencies [d8eab39]
+- Updated dependencies [13e55b2]
+- Updated dependencies [04b8363]
+  - @pnpm/store-connection-manager@8.3.0
+  - @pnpm/config@21.5.0
+  - @pnpm/plugin-commands-installation@15.1.11
+  - @pnpm/cli-utils@3.1.2
+  - @pnpm/pick-registry-for-package@6.0.2
+  - @pnpm/lockfile-file@9.1.1
+  - @pnpm/lockfile-utils@11.0.2
+  - @pnpm/modules-yaml@13.1.2
+  - @pnpm/read-package-json@9.0.3
+  - @pnpm/read-project-manifest@6.0.3
+  - @pnpm/patching.apply-patch@3.0.1
+  - @pnpm/pick-fetcher@3.0.0
+
+## 6.2.0
+
+### Minor Changes
+
+- 47341e5: **Semi-breaking.** Dependency key names in the lockfile are shortened if they are longer than 1000 characters. We don't expect this change to affect many users. Affected users most probably can't run install successfully at the moment. This change is required to fix some edge cases in which installation fails with an out-of-memory error or "Invalid string length (RangeError: Invalid string length)" error. The max allowed length of the dependency key can be controlled with the `peers-suffix-max-length` setting [#8177](https://github.com/pnpm/pnpm/pull/8177).
+
+### Patch Changes
+
+- 08dad01: Add `--no-ext-diff` disallow external diff drivers to prevent incorrect diff file formats
+- Updated dependencies [47341e5]
+  - @pnpm/lockfile-file@9.1.0
+  - @pnpm/config@21.4.0
+  - @pnpm/plugin-commands-installation@15.1.10
+  - @pnpm/lockfile-utils@11.0.1
+  - @pnpm/cli-utils@3.1.1
+  - @pnpm/store-connection-manager@8.2.2
+  - @pnpm/patching.apply-patch@3.0.1
+
 ## 6.1.9
 
 ### Patch Changes

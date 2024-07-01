@@ -1,4 +1,5 @@
 import { WANTED_LOCKFILE } from '@pnpm/constants'
+import { type Catalogs } from '@pnpm/catalogs.types'
 import { PnpmError } from '@pnpm/error'
 import { type ProjectOptions } from '@pnpm/get-context'
 import { type HoistingLimits } from '@pnpm/headless'
@@ -22,6 +23,7 @@ import { type PreResolutionHookContext } from '@pnpm/hooks.types'
 export interface StrictInstallOptions {
   autoInstallPeers: boolean
   autoInstallPeersFromHighestMatch: boolean
+  catalogs: Catalogs
   frozenLockfile: boolean
   frozenLockfileIfExists: boolean
   enablePnp: boolean
@@ -97,7 +99,10 @@ export interface StrictInstallOptions {
   updateToLatest?: boolean
   overrides: Record<string, string>
   ownLifecycleHooksStdio: 'inherit' | 'pipe'
-  workspacePackages: WorkspacePackages
+  // We can automatically calculate these
+  // unless installation runs on a workspace
+  // that doesn't share a lockfile
+  workspacePackages?: WorkspacePackages
   pruneStore: boolean
   virtualStoreDir?: string
   dir: string
@@ -145,6 +150,7 @@ export interface StrictInstallOptions {
   supportedArchitectures?: SupportedArchitectures
   hoistWorkspacePackages?: boolean
   virtualStoreDirMaxLength: number
+  peersSuffixMaxLength: number
 }
 
 export type InstallOptions =
@@ -227,7 +233,6 @@ const defaults = (opts: InstallOptions): StrictInstallOptions => {
     mergeGitBranchLockfiles: false,
     userAgent: `${packageManager.name}/${packageManager.version} npm/? node/${process.version} ${process.platform} ${process.arch}`,
     verifyStoreIntegrity: true,
-    workspacePackages: {},
     enableModulesDir: true,
     modulesCacheMaxAge: 7 * 24 * 60,
     resolveSymlinksInInjectedDirs: false,
@@ -239,6 +244,7 @@ const defaults = (opts: InstallOptions): StrictInstallOptions => {
     disallowWorkspaceCycles: false,
     excludeLinksFromLockfile: false,
     virtualStoreDirMaxLength: 120,
+    peersSuffixMaxLength: 1000,
   } as StrictInstallOptions
 }
 

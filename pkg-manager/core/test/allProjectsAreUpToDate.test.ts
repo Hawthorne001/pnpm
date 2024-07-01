@@ -12,7 +12,7 @@ const fooManifest = {
 const workspacePackages = {
   foo: {
     '1.0.0': {
-      dir: 'foo',
+      rootDir: 'foo',
       manifest: fooManifest,
     },
   },
@@ -21,7 +21,6 @@ const workspacePackages = {
 test('allProjectsAreUpToDate(): works with packages linked through the workspace protocol using relative path', async () => {
   expect(await allProjectsAreUpToDate([
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -31,13 +30,13 @@ test('allProjectsAreUpToDate(): works with packages linked through the workspace
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
     },
   ], {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {
@@ -64,7 +63,6 @@ test('allProjectsAreUpToDate(): works with packages linked through the workspace
 test('allProjectsAreUpToDate(): works with aliased local dependencies', async () => {
   expect(await allProjectsAreUpToDate([
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -74,13 +72,13 @@ test('allProjectsAreUpToDate(): works with aliased local dependencies', async ()
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
     },
   ], {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {
@@ -107,7 +105,6 @@ test('allProjectsAreUpToDate(): works with aliased local dependencies', async ()
 test('allProjectsAreUpToDate(): works with aliased local dependencies that specify versions', async () => {
   expect(await allProjectsAreUpToDate([
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -117,13 +114,13 @@ test('allProjectsAreUpToDate(): works with aliased local dependencies that speci
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
     },
   ], {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {
@@ -150,7 +147,6 @@ test('allProjectsAreUpToDate(): works with aliased local dependencies that speci
 test('allProjectsAreUpToDate(): returns false if the aliased dependency version is out of date', async () => {
   expect(await allProjectsAreUpToDate([
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -160,13 +156,13 @@ test('allProjectsAreUpToDate(): returns false if the aliased dependency version 
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
     },
   ], {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {
@@ -195,7 +191,6 @@ test('allProjectsAreUpToDate(): use link and registry version if linkWorkspacePa
     await allProjectsAreUpToDate(
       [
         {
-          buildIndex: 0,
           id: 'bar' as ProjectId,
           manifest: {
             dependencies: {
@@ -207,7 +202,6 @@ test('allProjectsAreUpToDate(): use link and registry version if linkWorkspacePa
           rootDir: 'bar',
         },
         {
-          buildIndex: 0,
           id: 'bar2' as ProjectId,
           manifest: {
             dependencies: {
@@ -217,13 +211,11 @@ test('allProjectsAreUpToDate(): use link and registry version if linkWorkspacePa
           rootDir: 'bar2',
         },
         {
-          buildIndex: 0,
           id: 'foo' as ProjectId,
           manifest: fooManifest,
           rootDir: 'foo',
         },
         {
-          buildIndex: 0,
           id: 'foo2' as ProjectId,
           manifest: {
             name: 'foo2',
@@ -232,7 +224,6 @@ test('allProjectsAreUpToDate(): use link and registry version if linkWorkspacePa
           rootDir: 'foo2',
         },
         {
-          buildIndex: 0,
           id: 'foo3' as ProjectId,
           manifest: {
             name: 'foo3',
@@ -243,6 +234,7 @@ test('allProjectsAreUpToDate(): use link and registry version if linkWorkspacePa
       ],
       {
         autoInstallPeers: false,
+        catalogs: {},
         excludeLinksFromLockfile: false,
         linkWorkspacePackages: false,
         wantedLockfile: {
@@ -289,7 +281,6 @@ test('allProjectsAreUpToDate(): use link and registry version if linkWorkspacePa
 test('allProjectsAreUpToDate(): returns false if dependenciesMeta differs', async () => {
   expect(await allProjectsAreUpToDate([
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -304,13 +295,13 @@ test('allProjectsAreUpToDate(): returns false if dependenciesMeta differs', asyn
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
     },
   ], {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {
@@ -337,7 +328,6 @@ test('allProjectsAreUpToDate(): returns false if dependenciesMeta differs', asyn
 test('allProjectsAreUpToDate(): returns true if dependenciesMeta matches', async () => {
   expect(await allProjectsAreUpToDate([
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -352,13 +342,13 @@ test('allProjectsAreUpToDate(): returns true if dependenciesMeta matches', async
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
     },
   ], {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {
@@ -401,7 +391,6 @@ describe('local file dependency', () => {
   })
   const projects = [
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -411,7 +400,6 @@ describe('local file dependency', () => {
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
@@ -419,6 +407,7 @@ describe('local file dependency', () => {
   ]
   const options = {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {
@@ -502,7 +491,6 @@ describe('local file dependency', () => {
 test('allProjectsAreUpToDate(): returns true if workspace dependency\'s version type is tag', async () => {
   const projects = [
     {
-      buildIndex: 0,
       id: 'bar' as ProjectId,
       manifest: {
         dependencies: {
@@ -512,7 +500,6 @@ test('allProjectsAreUpToDate(): returns true if workspace dependency\'s version 
       rootDir: 'bar',
     },
     {
-      buildIndex: 0,
       id: 'foo' as ProjectId,
       manifest: fooManifest,
       rootDir: 'foo',
@@ -520,6 +507,7 @@ test('allProjectsAreUpToDate(): returns true if workspace dependency\'s version 
   ]
   const options = {
     autoInstallPeers: false,
+    catalogs: {},
     excludeLinksFromLockfile: false,
     linkWorkspacePackages: true,
     wantedLockfile: {

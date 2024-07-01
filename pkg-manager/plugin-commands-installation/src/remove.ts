@@ -7,7 +7,8 @@ import { type CompletionFunc } from '@pnpm/command'
 import { FILTERING, OPTIONS, UNIVERSAL_OPTIONS } from '@pnpm/common-cli-options-help'
 import { type Config, getOptionsFromRootManifest, types as allTypes } from '@pnpm/config'
 import { PnpmError } from '@pnpm/error'
-import { arrayOfWorkspacePackagesToMap, findWorkspacePackages } from '@pnpm/workspace.find-packages'
+import { arrayOfWorkspacePackagesToMap } from '@pnpm/get-context'
+import { findWorkspacePackages } from '@pnpm/workspace.find-packages'
 import { getAllDependenciesFromManifest } from '@pnpm/manifest-utils'
 import { createOrConnectStoreController, type CreateStoreControllerOptions } from '@pnpm/store-connection-manager'
 import { type DependenciesField } from '@pnpm/types'
@@ -147,6 +148,7 @@ export async function handler (
   | 'saveProd'
   | 'selectedProjectsGraph'
   | 'workspaceDir'
+  | 'workspacePackagePatterns'
   | 'sharedWorkspaceLockfile'
   > & {
     recursive?: boolean
@@ -178,7 +180,7 @@ export async function handler (
   })
   // @ts-expect-error
   removeOpts['workspacePackages'] = opts.workspaceDir
-    ? arrayOfWorkspacePackagesToMap(await findWorkspacePackages(opts.workspaceDir, opts))
+    ? arrayOfWorkspacePackagesToMap(await findWorkspacePackages(opts.workspaceDir, { ...opts, patterns: opts.workspacePackagePatterns }))
     : undefined
   const targetDependenciesField = getSaveType(opts)
   const {

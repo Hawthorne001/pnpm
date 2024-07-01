@@ -162,7 +162,8 @@ export async function handler (
           dependencies: [],
           package: {
             ...project,
-            dir: opts.dir,
+            rootDir: opts.dir,
+            rootDirRealPath: opts.dir,
           } as Project,
         },
       }
@@ -186,7 +187,7 @@ export async function handler (
     './node_modules/.bin',
     ...opts.extraBinPaths,
   ]
-  const reporterShowPrefix = opts.recursive && !opts.reporterHidePrefix
+  const reporterShowPrefix = opts.recursive && opts.reporterHidePrefix === false
   for (const chunk of chunks) {
     // eslint-disable-next-line no-await-in-loop
     await Promise.all(chunk.map(async (prefix: string) =>

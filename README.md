@@ -83,7 +83,7 @@ To quote the [Rush](https://rushjs.io/) team:
           <picture>
             <source media="(prefers-color-scheme: light)" srcset="https://pnpm.io/img/users/jetbrains.svg" />
             <source media="(prefers-color-scheme: dark)" srcset="https://pnpm.io/img/users/jetbrains.svg" />
-            <img src="https://pnpm.io/img/users/jetbrains.svg" width="85" />
+            <img src="https://pnpm.io/img/users/jetbrains.svg" width="180" />
           </picture>
         </a>
       </td>
@@ -225,14 +225,6 @@ pnpm is up to 2x faster than npm and Yarn classic. See all benchmarks [here](htt
 Benchmarks on an app with lots of dependencies:
 
 ![](https://pnpm.io/img/benchmarks/alotta-files.svg)
-
-## Usage Trend
-
-[Usage Trend of pnpm](https://npm-compare.com/pnpm/#timeRange=THREE_YEARS)
-
-<a href="https://npm-compare.com/pnpm#timeRange=THREE_YEARS" target="_blank">
-  <img src="https://npm-compare.com/img/npm-trend/THREE_YEARS/pnpm.png" width="100%" alt="NPM Usage Trend of pnpm" />
-</a>
 
 ## Backers
 

@@ -16,6 +16,12 @@
       "path": "../../__utils__/test-ipc-server"
     },
     {
+      "path": "../../catalogs/config"
+    },
+    {
+      "path": "../../catalogs/types"
+    },
+    {
       "path": "../../cli/cli-utils"
     },
     {
@@ -61,7 +67,7 @@
       "path": "../../resolving/resolver-base"
     },
     {
-      "path": "../../workspace/filter-workspace-packages"
+      "path": "../../workspace/filter-packages-from-dir"
     },
     {
       "path": "../../workspace/sort-packages"

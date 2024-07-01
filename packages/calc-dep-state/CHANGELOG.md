@@ -1,5 +1,24 @@
 # @pnpm/calc-dep-state
 
+## 7.0.2
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/lockfile-types@7.1.1
+  - @pnpm/lockfile-utils@11.0.2
+  - @pnpm/dependency-path@5.1.1
+
+## 7.0.1
+
+### Patch Changes
+
+- Updated dependencies [47341e5]
+  - @pnpm/dependency-path@5.1.0
+  - @pnpm/lockfile-types@7.1.0
+  - @pnpm/lockfile-utils@11.0.1
+
 ## 7.0.0
 
 ### Major Changes
