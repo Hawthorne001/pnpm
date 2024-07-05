@@ -99,6 +99,7 @@ export type ImportCommandOptions = Pick<Config,
 | 'ignoreWorkspaceCycles'
 | 'disallowWorkspaceCycles'
 | 'sharedWorkspaceLockfile'
+| 'workspacePackagePatterns'
 | 'rootProjectManifest'
 | 'rootProjectManifestDir'
 > & CreateStoreControllerOptions & Omit<InstallOptions, 'storeController' | 'lockfileOnly' | 'preferredVersions'>
@@ -132,7 +133,10 @@ export async function handler (
 
   // For a workspace with shared lockfile
   if (opts.workspaceDir) {
-    const allProjects = opts.allProjects ?? await findWorkspacePackages(opts.workspaceDir, opts)
+    const allProjects = opts.allProjects ?? await findWorkspacePackages(opts.workspaceDir, {
+      ...opts,
+      patterns: opts.workspacePackagePatterns,
+    })
     const selectedProjectsGraph = opts.selectedProjectsGraph ?? selectProjectByDir(allProjects, opts.dir)
     if (selectedProjectsGraph != null) {
       const sequencedGraph = sequenceGraph(selectedProjectsGraph)
@@ -328,7 +332,7 @@ function getAllVersionsFromYarnLockFile (
 }
 
 function selectProjectByDir (projects: Project[], searchedDir: string): ProjectsGraph | undefined {
-  const project = projects.find(({ dir }) => path.relative(dir, searchedDir) === '')
+  const project = projects.find(({ rootDir }) => path.relative(rootDir, searchedDir) === '')
   if (project == null) return undefined
   return { [searchedDir]: { dependencies: [], package: project } }
 }

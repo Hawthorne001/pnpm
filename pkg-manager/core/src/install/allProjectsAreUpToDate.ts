@@ -1,4 +1,5 @@
 import path from 'path'
+import { type Catalogs } from '@pnpm/catalogs.types'
 import { type ProjectOptions } from '@pnpm/get-context'
 import {
   type PackageSnapshot,
@@ -14,17 +15,19 @@ import {
   DEPENDENCIES_FIELDS,
   DEPENDENCIES_OR_PEER_FIELDS,
   type DependencyManifest,
-  type ProjectManifest,
   type ProjectId,
+  type ProjectManifest,
 } from '@pnpm/types'
 import pEvery from 'p-every'
 import any from 'ramda/src/any'
 import semver from 'semver'
 import getVersionSelectorType from 'version-selector-type'
+import { allCatalogsAreUpToDate } from './allCatalogsAreUpToDate'
 
 export async function allProjectsAreUpToDate (
-  projects: Array<ProjectOptions & { id: ProjectId }>,
+  projects: Array<Pick<ProjectOptions, 'manifest' | 'rootDir'> & { id: ProjectId }>,
   opts: {
+    catalogs: Catalogs
     autoInstallPeers: boolean
     excludeLinksFromLockfile: boolean
     linkWorkspacePackages: boolean
@@ -33,6 +36,13 @@ export async function allProjectsAreUpToDate (
     lockfileDir: string
   }
 ): Promise<boolean> {
+  // Projects may declare dependencies using catalog protocol specifiers. If the
+  // catalog config definitions are edited by users, projects using them are out
+  // of date.
+  if (!allCatalogsAreUpToDate(opts.catalogs, opts.wantedLockfile.catalogs)) {
+    return false
+  }
+
   const manifestsByDir = opts.workspacePackages ? getWorkspacePackagesByDirectory(opts.workspacePackages) : {}
   const _satisfiesPackageManifest = satisfiesPackageManifest.bind(null, {
     autoInstallPeers: opts.autoInstallPeers,
@@ -59,11 +69,13 @@ export async function allProjectsAreUpToDate (
 
 function getWorkspacePackagesByDirectory (workspacePackages: WorkspacePackages): Record<string, DependencyManifest> {
   const workspacePackagesByDirectory: Record<string, DependencyManifest> = {}
-  Object.keys(workspacePackages || {}).forEach((pkgName) => {
-    Object.keys(workspacePackages[pkgName] || {}).forEach((pkgVersion) => {
-      workspacePackagesByDirectory[workspacePackages[pkgName][pkgVersion].dir] = workspacePackages[pkgName][pkgVersion].manifest
-    })
-  })
+  if (workspacePackages) {
+    for (const pkgVersions of workspacePackages.values()) {
+      for (const { rootDir, manifest } of pkgVersions.values()) {
+        workspacePackagesByDirectory[rootDir] = manifest
+      }
+    }
+  }
   return workspacePackagesByDirectory
 }
 
@@ -122,7 +134,7 @@ async function linkedPackagesAreUpToDate (
           }
           const linkedDir = isLinked
             ? path.join(project.dir, lockfileRef.slice(5))
-            : workspacePackages?.[depName]?.[lockfileRef]?.dir
+            : workspacePackages?.get(depName)?.get(lockfileRef)?.rootDir
           if (!linkedDir) return true
           if (!linkWorkspacePackages && !currentSpec.startsWith('workspace:')) {
             // we found a linked dir, but we don't want to use it, because it's not specified as a

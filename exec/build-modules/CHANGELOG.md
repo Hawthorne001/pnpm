@@ -1,5 +1,49 @@
 # @pnpm/build-modules
 
+## 13.0.5
+
+### Patch Changes
+
+- fd884c1: Improve output of the `pnpm patch` command.
+- Updated dependencies [dd00eeb]
+- Updated dependencies
+  - @pnpm/types@11.0.0
+  - @pnpm/store-controller-types@18.1.2
+  - @pnpm/lifecycle@17.0.7
+  - @pnpm/calc-dep-state@7.0.3
+  - @pnpm/core-loggers@10.0.3
+  - @pnpm/link-bins@10.0.5
+  - @pnpm/read-package-json@9.0.4
+  - @pnpm/worker@1.0.5
+  - @pnpm/fs.hard-link-dir@4.0.0
+  - @pnpm/patching.apply-patch@3.0.1
+
+## 13.0.4
+
+### Patch Changes
+
+- Updated dependencies [13e55b2]
+  - @pnpm/types@10.1.1
+  - @pnpm/lifecycle@17.0.6
+  - @pnpm/calc-dep-state@7.0.2
+  - @pnpm/core-loggers@10.0.2
+  - @pnpm/link-bins@10.0.4
+  - @pnpm/read-package-json@9.0.3
+  - @pnpm/store-controller-types@18.1.1
+  - @pnpm/worker@1.0.4
+  - @pnpm/fs.hard-link-dir@4.0.0
+  - @pnpm/patching.apply-patch@3.0.1
+
+## 13.0.3
+
+### Patch Changes
+
+- @pnpm/calc-dep-state@7.0.1
+- @pnpm/fs.hard-link-dir@4.0.0
+- @pnpm/patching.apply-patch@3.0.1
+- @pnpm/lifecycle@17.0.5
+- @pnpm/link-bins@10.0.3
+
 ## 13.0.2
 
 ### Patch Changes

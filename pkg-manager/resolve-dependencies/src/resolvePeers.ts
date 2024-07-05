@@ -4,12 +4,13 @@ import path from 'path'
 import pDefer from 'p-defer'
 import semver from 'semver'
 import { semverUtils } from '@yarnpkg/core'
-import type {
-  DepPath,
-  ParentPackages,
-  PeerDependencyIssues,
-  PeerDependencyIssuesByProjects,
-  PkgIdWithPatchHash,
+import {
+  type DepPath,
+  type ParentPackages,
+  type PeerDependencyIssues,
+  type PeerDependencyIssuesByProjects,
+  type PkgIdWithPatchHash,
+  type ProjectRootDir,
 } from '@pnpm/types'
 import { depPathToFilename, createPeersDirSuffix, type PeerId } from '@pnpm/dependency-path'
 import partition from 'ramda/src/partition'
@@ -70,7 +71,7 @@ export interface ProjectToResolve {
   // only the top dependencies that were already installed
   // to avoid warnings about unresolved peer dependencies
   topParents: Array<{ name: string, version: string, alias?: string }>
-  rootDir: string // is only needed for logging
+  rootDir: ProjectRootDir // is only needed for logging
   id: string
 }
 
@@ -88,6 +89,7 @@ export async function resolvePeers<T extends PartialResolvedPackage> (
     dedupePeerDependents?: boolean
     dedupeInjectedDeps?: boolean
     resolvedImporters: ResolvedImporters
+    peersSuffixMaxLength: number
   }
 ): Promise<{
     dependenciesGraph: GenericDependenciesGraphWithResolvedChildren<T>
@@ -130,6 +132,7 @@ export async function resolvePeers<T extends PartialResolvedPackage> (
       peersCache: new Map(),
       peerDependencyIssues,
       purePkgs: new Set(),
+      peersSuffixMaxLength: opts.peersSuffixMaxLength,
       rootDir,
       virtualStoreDir: opts.virtualStoreDir,
       virtualStoreDirMaxLength: opts.virtualStoreDirMaxLength,
@@ -368,8 +371,9 @@ async function resolvePeersOfNode<T extends PartialResolvedPackage> (
     peerDependencyIssues: Pick<PeerDependencyIssues, 'bad' | 'missing'>
     peersCache: PeersCache
     purePkgs: Set<PkgIdWithPatchHash> // pure packages are those that don't rely on externally resolved peers
-    rootDir: string
+    rootDir: ProjectRootDir
     lockfileDir: string
+    peersSuffixMaxLength: number
   }
 ): Promise<PeersResolution & { finishing?: FinishingResolutionPromise, calculateDepPath?: CalculateDepPath }> {
   const node = ctx.dependenciesTree.get(nodeId)!
@@ -509,7 +513,7 @@ async function resolvePeersOfNode<T extends PartialResolvedPackage> (
       pendingPeerNodeIds.push(peerNodeId)
     }
     if (pendingPeerNodeIds.length === 0) {
-      const peersDirSuffix = createPeersDirSuffix(peerIds)
+      const peersDirSuffix = createPeersDirSuffix(peerIds, ctx.peersSuffixMaxLength)
       addDepPathToGraph(`${resolvedPackage.pkgIdWithPatchHash}${peersDirSuffix}` as DepPath)
     } else {
       calculateDepPathIfNeeded = calculateDepPath.bind(null, peerIds, pendingPeerNodeIds)
@@ -547,7 +551,7 @@ async function resolvePeersOfNode<T extends PartialResolvedPackage> (
           return ctx.pathsByNodeIdPromises.get(peerNodeId)!.promise
         })
       ),
-    ])
+    ], ctx.peersSuffixMaxLength)
     addDepPathToGraph(`${resolvedPackage.pkgIdWithPatchHash}${peersDirSuffix}` as DepPath)
   }
 
@@ -730,8 +734,9 @@ async function resolvePeersOfChildren<T extends PartialResolvedPackage> (
     purePkgs: Set<PkgIdWithPatchHash>
     depGraph: GenericDependenciesGraph<T>
     dependenciesTree: DependenciesTree<T>
-    rootDir: string
+    rootDir: ProjectRootDir
     lockfileDir: string
+    peersSuffixMaxLength: number
   }
 ): Promise<PeersResolution & { finishing: Promise<void> }> {
   const allResolvedPeers = new Map<string, NodeId>()
@@ -817,7 +822,7 @@ function _resolvePeers<T extends PartialResolvedPackage> (
     parentNodeIds: NodeId[]
     resolvedPackage: T
     dependenciesTree: DependenciesTree<T>
-    rootDir: string
+    rootDir: ProjectRootDir
     peerDependencyIssues: Pick<PeerDependencyIssues, 'bad' | 'missing'>
   }
 ): PeersResolution {

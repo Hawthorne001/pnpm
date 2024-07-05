@@ -62,6 +62,9 @@ export function convertToLockfileFile (lockfile: Lockfile, opts: NormalizeLockfi
     lockfileVersion: LOCKFILE_VERSION,
     importers: mapValues(lockfile.importers, convertProjectSnapshotToInlineSpecifiersFormat),
   }
+  if (newLockfile.settings?.peersSuffixMaxLength === 1000) {
+    newLockfile.settings = omit(['peersSuffixMaxLength'], newLockfile.settings)
+  }
   return normalizeLockfile(newLockfile, opts)
 }
 
@@ -112,6 +115,9 @@ function normalizeLockfile (lockfile: InlineSpecifiersLockfile, opts: NormalizeL
   }
   if (lockfileToSave.time) {
     lockfileToSave.time = pruneTimeInLockfileV6(lockfileToSave.time, lockfile.importers ?? {})
+  }
+  if ((lockfileToSave.catalogs != null) && isEmpty(lockfileToSave.catalogs)) {
+    delete lockfileToSave.catalogs
   }
   if ((lockfileToSave.overrides != null) && isEmpty(lockfileToSave.overrides)) {
     delete lockfileToSave.overrides

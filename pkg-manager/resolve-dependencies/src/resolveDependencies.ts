@@ -1,4 +1,5 @@
 import path from 'path'
+import { matchCatalogResolveResult, type CatalogResolver } from '@pnpm/catalogs.resolver'
 import {
   deprecationLogger,
   progressLogger,
@@ -56,6 +57,7 @@ import { type NodeId, nextNodeId } from './nextNodeId'
 import { parentIdsContainSequence } from './parentIdsContainSequence'
 import { hoistPeers, getHoistableOptionalPeers } from './hoistPeers'
 import { wantedDepIsLocallyAvailable } from './wantedDepIsLocallyAvailable'
+import { type CatalogLookupMetadata } from './resolveDependencyTree'
 import { replaceVersionInPref } from './replaceVersionInPref'
 
 const dependencyResolvedLogger = logger('_dependency_resolved')
@@ -110,6 +112,7 @@ export interface LinkedDependency {
   name: string
   normalizedPref?: string
   alias: string
+  catalogLookup?: CatalogLookupMetadata
 }
 
 export interface PendingNode {
@@ -137,6 +140,7 @@ export interface ResolutionContext {
   allPreferredVersions?: PreferredVersions
   appliedPatches: Set<string>
   updatedSet: Set<string>
+  catalogResolver: CatalogResolver
   defaultTag: string
   dryRun: boolean
   forceFullResolution: boolean
@@ -196,6 +200,7 @@ export type PkgAddress = {
   missingPeers: MissingPeers
   missingPeersOfChildren?: MissingPeersOfChildren
   publishedAt?: string
+  catalogLookup?: CatalogLookupMetadata
   optional: boolean
 } & ({
   isLinkedDependency: true
@@ -409,18 +414,12 @@ async function resolveDependenciesOfImporters (
       const postponedPeersResolutionQueue: PostponedPeersResolutionFunction[] = []
       const pkgAddresses: PkgAddress[] = []
 
-      const resolvedDependenciesOfImporter = await Promise.all(
-        extendedWantedDeps.map((extendedWantedDep) => resolveDependenciesOfDependency(
-          ctx,
-          importer.preferredVersions,
-          {
-            ...importer.options,
-            parentPkgAliases: importer.parentPkgAliases,
-            pickLowestVersion: pickLowestVersion && !importer.updatePackageManifest,
-          },
-          extendedWantedDep
-        ))
-      )
+      const resolveDependenciesOfImporterWantedDep = resolveDependenciesOfImporterDependency.bind(null, {
+        ctx,
+        importer,
+        pickLowestVersion,
+      })
+      const resolvedDependenciesOfImporter = await Promise.all(extendedWantedDeps.map(resolveDependenciesOfImporterWantedDep))
 
       for (const { resolveDependencyResult, postponedPeersResolution, postponedResolution } of resolvedDependenciesOfImporter) {
         if (resolveDependencyResult) {
@@ -509,6 +508,62 @@ async function resolveDependenciesOfImporters (
     publishedBy,
     time,
   }
+}
+
+export interface ResolveDependenciesOfImporterDependencyOpts {
+  readonly ctx: ResolutionContext
+  readonly importer: ImporterToResolve
+  readonly pickLowestVersion: boolean
+}
+
+async function resolveDependenciesOfImporterDependency (
+  { ctx, importer, pickLowestVersion }: ResolveDependenciesOfImporterDependencyOpts,
+  extendedWantedDep: ExtendedWantedDependency
+): Promise<ResolveDependenciesOfDependency> {
+  // The catalog protocol is only usable in importers (i.e. packages in the
+  // workspace. Replacing catalog protocol while resolving importers here before
+  // resolving dependencies of packages outside of the workspace/monorepo.
+  const catalogLookup = matchCatalogResolveResult(ctx.catalogResolver(extendedWantedDep.wantedDependency), {
+    found: (result) => result.resolution,
+    unused: () => undefined,
+    misconfiguration: (result) => {
+      throw result.error
+    },
+  })
+
+  if (catalogLookup != null) {
+    // The lockfile from a previous installation may have already resolved this
+    // cataloged dependency. Reuse the exact version in the lockfile catalog
+    // snapshot to ensure all projects using the same cataloged dependency get
+    // the same version.
+    const existingCatalogResolution = ctx.wantedLockfile.catalogs
+      ?.[catalogLookup.catalogName]
+      ?.[extendedWantedDep.wantedDependency.alias]
+    const replacementPref = existingCatalogResolution?.specifier === catalogLookup.specifier
+      ? replaceVersionInPref(catalogLookup.specifier, existingCatalogResolution.version)
+      : catalogLookup.specifier
+
+    extendedWantedDep.wantedDependency.pref = replacementPref
+  }
+
+  const result = await resolveDependenciesOfDependency(
+    ctx,
+    importer.preferredVersions,
+    {
+      ...importer.options,
+      parentPkgAliases: importer.parentPkgAliases,
+      pickLowestVersion: pickLowestVersion && !importer.updatePackageManifest,
+    },
+    extendedWantedDep
+  )
+
+  // If the catalog protocol was used, store metadata about the catalog
+  // lookup to use in the lockfile.
+  if (result.resolveDependencyResult != null && catalogLookup != null) {
+    result.resolveDependencyResult.catalogLookup = catalogLookup
+  }
+
+  return result
 }
 
 function filterMissingPeersFromPkgAddresses (
@@ -1180,20 +1235,22 @@ async function resolveDependency (
       updateToLatest: options.updateToLatest,
     })
   } catch (err: any) { // eslint-disable-line
+    const wantedDependencyDetails = {
+      name: wantedDependency.alias,
+      pref: wantedDependency.pref,
+      version: wantedDependency.alias ? wantedDependency.pref : undefined,
+    }
     if (wantedDependency.optional) {
       skippedOptionalDependencyLogger.debug({
         details: err.toString(),
-        package: {
-          name: wantedDependency.alias,
-          pref: wantedDependency.pref,
-          version: wantedDependency.alias ? wantedDependency.pref : undefined,
-        },
+        package: wantedDependencyDetails,
         parents: getPkgsInfoFromIds(options.parentIds, ctx.resolvedPkgsById),
         prefix: options.prefix,
         reason: 'resolution_failure',
       })
       return null
     }
+    err.package = wantedDependencyDetails
     err.prefix = options.prefix
     err.pkgsStack = getPkgsInfoFromIds(options.parentIds, ctx.resolvedPkgsById)
     throw err

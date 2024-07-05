@@ -1,5 +1,34 @@
 # @pnpm/plugin-commands-init
 
+## 4.0.11
+
+### Patch Changes
+
+- Updated dependencies [1b03682]
+  - @pnpm/config@21.6.0
+  - @pnpm/cli-utils@3.1.3
+  - @pnpm/write-project-manifest@6.0.3
+
+## 4.0.10
+
+### Patch Changes
+
+- Updated dependencies [7c6c923]
+- Updated dependencies [7d10394]
+- Updated dependencies [d8eab39]
+- Updated dependencies [04b8363]
+  - @pnpm/config@21.5.0
+  - @pnpm/cli-utils@3.1.2
+  - @pnpm/write-project-manifest@6.0.2
+
+## 4.0.9
+
+### Patch Changes
+
+- Updated dependencies [47341e5]
+  - @pnpm/config@21.4.0
+  - @pnpm/cli-utils@3.1.1
+
 ## 4.0.8
 
 ### Patch Changes

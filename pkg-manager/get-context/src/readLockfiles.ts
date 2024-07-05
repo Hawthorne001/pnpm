@@ -13,7 +13,7 @@ import {
   readWantedLockfileAndAutofixConflicts,
 } from '@pnpm/lockfile-file'
 import { logger } from '@pnpm/logger'
-import { type ProjectId } from '@pnpm/types'
+import { type ProjectId, type ProjectRootDir } from '@pnpm/types'
 import { isCI } from 'ci-info'
 import clone from 'ramda/src/clone'
 import equals from 'ramda/src/equals'
@@ -30,11 +30,12 @@ export async function readLockfiles (
   opts: {
     autoInstallPeers: boolean
     excludeLinksFromLockfile: boolean
+    peersSuffixMaxLength: number
     force: boolean
     frozenLockfile: boolean
     projects: Array<{
       id: ProjectId
-      rootDir: string
+      rootDir: ProjectRootDir
     }>
     lockfileDir: string
     registry: string
@@ -111,6 +112,7 @@ export async function readLockfiles (
     autoInstallPeers: opts.autoInstallPeers,
     excludeLinksFromLockfile: opts.excludeLinksFromLockfile,
     lockfileVersion: wantedLockfileVersion,
+    peersSuffixMaxLength: opts.peersSuffixMaxLength,
   }
   const importerIds = opts.projects.map((importer) => importer.id)
   const currentLockfile = files[1] ?? createLockfileObject(importerIds, sopts)

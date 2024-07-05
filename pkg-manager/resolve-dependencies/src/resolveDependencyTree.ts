@@ -1,3 +1,5 @@
+import { resolveFromCatalog } from '@pnpm/catalogs.resolver'
+import { type Catalogs } from '@pnpm/catalogs.types'
 import { type Lockfile, type PatchFile } from '@pnpm/lockfile-types'
 import { type PreferredVersions, type Resolution, type WorkspacePackages } from '@pnpm/resolver-base'
 import { type StoreController } from '@pnpm/store-controller-types'
@@ -9,6 +11,7 @@ import {
   type ProjectId,
   type ReadPackageHook,
   type Registries,
+  type ProjectRootDir,
 } from '@pnpm/types'
 import partition from 'ramda/src/partition'
 import zipObj from 'ramda/src/zipObj'
@@ -49,6 +52,16 @@ export interface ResolvedDirectDependency {
   version: string
   name: string
   normalizedPref?: string
+  catalogLookup?: CatalogLookupMetadata
+}
+
+/**
+ * Information related to the catalog entry for this dependency if it was
+ * requested through the catalog protocol.
+ */
+export interface CatalogLookupMetadata {
+  readonly catalogName: string
+  readonly specifier: string
 }
 
 export interface Importer<WantedDepExtraProps> {
@@ -56,7 +69,7 @@ export interface Importer<WantedDepExtraProps> {
   manifest: ProjectManifest
   modulesDir: string
   removePackages?: string[]
-  rootDir: string
+  rootDir: ProjectRootDir
   wantedDependencies: Array<WantedDepExtraProps & WantedDependency>
 }
 
@@ -74,6 +87,7 @@ export interface ResolveDependenciesOptions {
   allowBuild?: (pkgName: string) => boolean
   allowedDeprecatedVersions: AllowedDeprecatedVersions
   allowNonAppliedPatches: boolean
+  catalogs?: Catalogs
   currentLockfile: Lockfile
   dedupePeerDependents?: boolean
   dryRun: boolean
@@ -102,6 +116,7 @@ export interface ResolveDependenciesOptions {
   workspacePackages: WorkspacePackages
   supportedArchitectures?: SupportedArchitectures
   updateToLatest?: boolean
+  peersSuffixMaxLength: number
 }
 
 export interface ResolveDependencyTreeResult {
@@ -128,6 +143,7 @@ export async function resolveDependencyTree<T> (
     autoInstallPeersFromHighestMatch: opts.autoInstallPeersFromHighestMatch === true,
     allowBuild: opts.allowBuild,
     allowedDeprecatedVersions: opts.allowedDeprecatedVersions,
+    catalogResolver: resolveFromCatalog.bind(null, opts.catalogs ?? {}),
     childrenByParentId: {} as ChildrenByParentId,
     currentLockfile: opts.currentLockfile,
     defaultTag: opts.tag,
@@ -228,6 +244,7 @@ export async function resolveDependencyTree<T> (
           const resolvedPackage = ctx.dependenciesTree.get(dep.nodeId)!.resolvedPackage as ResolvedPackage
           return {
             alias: dep.alias,
+            catalogLookup: dep.catalogLookup,
             dev: resolvedPackage.dev,
             name: resolvedPackage.name,
             normalizedPref: dep.normalizedPref,

@@ -43,10 +43,37 @@ export default async (workspaceDir: string) => {
         pnpmMajorKeyword,
         ...(manifest.keywords ?? []).filter((keyword) => !/^pnpm[0-9]+$/.test(keyword)),
       ]
+      if (manifest.name !== CLI_PKG_NAME) {
+        for (const depType of ['dependencies', 'devDependencies', 'optionalDependencies'] as const) {
+          if (!manifest[depType]) continue
+          for (const depName of Object.keys(manifest[depType] ?? {})) {
+            if (!manifest[depType]?.[depName].startsWith('workspace:')) {
+              manifest[depType]![depName] = 'catalog:'
+            }
+          }
+        }
+      } else {
+        for (const depType of ['devDependencies'] as const) {
+          if (!manifest[depType]) continue
+          for (const depName of Object.keys(manifest[depType] ?? {})) {
+            if (!manifest[depType]?.[depName].startsWith('workspace:')) {
+              manifest[depType]![depName] = 'catalog:'
+            }
+          }
+        }
+        for (const depType of ['dependencies', 'optionalDependencies'] as const) {
+          if (!manifest[depType]) continue
+          for (const depName of Object.keys(manifest[depType] ?? {})) {
+            if (manifest[depType]?.[depName] === 'catalog:') {
+              throw new Error('The pnpm CLI package cannot have "catalog:" in prod deps as publish-packed does not support them currently')
+            }
+          }
+        }
+      }
       if (dir.includes('artifacts') || manifest.name === '@pnpm/exe') {
         manifest.version = pnpmVersion
         if (manifest.name === '@pnpm/exe') {
-          for (const depName of ['@pnpm/linux-arm64', '@pnpm/linux-x64', '@pnpm/win-x64', '@pnpm/macos-x64', '@pnpm/macos-arm64']) {
+          for (const depName of ['@pnpm/linux-arm64', '@pnpm/linux-x64', '@pnpm/win-x64', '@pnpm/win-arm64', '@pnpm/macos-x64', '@pnpm/macos-arm64']) {
             manifest.optionalDependencies![depName] = `workspace:*`
           }
         }

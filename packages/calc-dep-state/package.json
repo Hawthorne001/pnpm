@@ -1,6 +1,6 @@
 {
   "name": "@pnpm/calc-dep-state",
-  "version": "7.0.0",
+  "version": "7.0.3",
   "description": "Calculates the state of a dependency",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -35,7 +35,7 @@
     "@pnpm/lockfile-types": "workspace:*",
     "@pnpm/lockfile-utils": "workspace:*",
     "@pnpm/types": "workspace:*",
-    "sort-keys": "^4.2.0"
+    "sort-keys": "catalog:"
   },
   "devDependencies": {
     "@pnpm/calc-dep-state": "workspace:*"

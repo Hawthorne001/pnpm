@@ -8,6 +8,7 @@ import { DEFAULT_REGISTRIES } from '@pnpm/normalize-registries'
 
 export type ListMissingPeersOptions = Partial<GetContextOptions>
 & Pick<InstallOptions, 'hooks'
+| 'catalogs'
 | 'dedupePeerDependents'
 | 'ignoreCompatibilityDb'
 | 'linkWorkspacePackagesDepth'
@@ -20,11 +21,11 @@ export type ListMissingPeersOptions = Partial<GetContextOptions>
 | 'saveWorkspaceProtocol'
 | 'storeController'
 | 'useGitBranchLockfile'
-| 'workspacePackages'
+| 'peersSuffixMaxLength'
 >
 & Partial<Pick<InstallOptions, 'supportedArchitectures'>>
 & Pick<GetContextOptions, 'autoInstallPeers' | 'excludeLinksFromLockfile' | 'storeDir'>
-& Required<Pick<InstallOptions, 'virtualStoreDirMaxLength'>>
+& Required<Pick<InstallOptions, 'virtualStoreDirMaxLength' | 'peersSuffixMaxLength'>>
 
 export async function getPeerDependencyIssues (
   projects: ProjectOptions[],
@@ -59,6 +60,7 @@ export async function getPeerDependencyIssues (
       currentLockfile: ctx.currentLockfile,
       allowedDeprecatedVersions: {},
       allowNonAppliedPatches: false,
+      catalogs: opts.catalogs,
       defaultUpdateDepth: -1,
       dedupePeerDependents: opts.dedupePeerDependents,
       dryRun: true,
@@ -89,8 +91,9 @@ export async function getPeerDependencyIssues (
       virtualStoreDir: ctx.virtualStoreDir,
       virtualStoreDirMaxLength: ctx.virtualStoreDirMaxLength,
       wantedLockfile: ctx.wantedLockfile,
-      workspacePackages: opts.workspacePackages ?? {},
+      workspacePackages: ctx.workspacePackages ?? new Map(),
       supportedArchitectures: opts.supportedArchitectures,
+      peersSuffixMaxLength: opts.peersSuffixMaxLength,
     }
   )
 

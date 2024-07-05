@@ -1,5 +1,41 @@
 # @pnpm/plugin-commands-env
 
+## 5.0.11
+
+### Patch Changes
+
+- Updated dependencies [1b03682]
+  - @pnpm/config@21.6.0
+  - @pnpm/cli-utils@3.1.3
+  - @pnpm/fetch@8.0.3
+  - @pnpm/remove-bins@6.0.4
+  - @pnpm/node.fetcher@4.0.7
+  - @pnpm/node.resolver@3.0.7
+
+## 5.0.10
+
+### Patch Changes
+
+- Updated dependencies [7c6c923]
+- Updated dependencies [7d10394]
+- Updated dependencies [d8eab39]
+- Updated dependencies [04b8363]
+  - @pnpm/config@21.5.0
+  - @pnpm/cli-utils@3.1.2
+  - @pnpm/fetch@8.0.2
+  - @pnpm/remove-bins@6.0.3
+  - @pnpm/node.fetcher@4.0.6
+  - @pnpm/node.resolver@3.0.6
+
+## 5.0.9
+
+### Patch Changes
+
+- Updated dependencies [47341e5]
+  - @pnpm/config@21.4.0
+  - @pnpm/cli-utils@3.1.1
+  - @pnpm/node.fetcher@4.0.5
+
 ## 5.0.8
 
 ### Patch Changes
