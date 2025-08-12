@@ -54,7 +54,7 @@
     "ramda": "npm:@pnpm/ramda@0.28.1",
     "rename-overwrite": "^5.0.0",
     "semver": "^7.6.0",
-    "ssri": "10.0.5",
+    "ssri": "10.0.6",
     "version-selector-type": "^3.0.0"
   },
   "devDependencies": {
