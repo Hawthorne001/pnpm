@@ -56,7 +56,7 @@
     "@pnpm/merge-lockfile-changes": "workspace:*",
     "@pnpm/types": "workspace:*",
     "@pnpm/util.lex-comparator": "3.0.0",
-    "@zkochan/rimraf": "^2.1.3",
+    "@zkochan/rimraf": "^3.0.0",
     "comver-to-semver": "^1.0.0",
     "js-yaml": "npm:@zkochan/js-yaml@0.0.7",
     "normalize-path": "^3.0.0",
